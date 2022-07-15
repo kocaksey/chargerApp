@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreLocation
+import Alamofire
 
 class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
     
@@ -27,7 +28,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotific
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        postRequest(url: "http://ec2-18-197-100-203.eu-central-1.compute.amazonaws.com:8080/auth/login", parameters: ["email": "seyhunkocak11@gmail.com", "deviceUDID": String(UIDevice.current.identifierForVendor!.uuidString)], token: nil)
 
         
         let thickness: CGFloat = 2.0
@@ -51,82 +51,36 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotific
         }
         
         
-        print(UIDevice.current.identifierForVendor!.uuidString)
         
         // BVG4QyVeCQUHcOpEMxKderIMuTizQrfD
     
-        func postRequest(url : String , parameters: [String: Any] , token : String?) {
-            let parameters = parameters
-          
-          // create the url with URL
-          let url = URL(string: url)!
-            
-          // create the session object
-          let session = URLSession.shared
-          
-          // now create the URLRequest object using the url object
-          var request = URLRequest(url: url)
-          request.httpMethod = "POST" //set http method as POST
-          
-          // add headers for the request
-            
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type") // change as per server requirements
-            if token != nil {
-                request.addValue("\(token)", forHTTPHeaderField: "token")
-            }
-          
-          do {
-            // convert parameters to Data and assign dictionary to httpBody of request
-            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
-          } catch let error {
-            print(error.localizedDescription)
-              return
-          }
-          
-          // create dataTask using the session object to send data to the server
-            let task = session.dataTask(with: request) { data, response, error in
-            
-            if let error = error {
-              print("Post Request Error: \(error.localizedDescription)")
-              return
-            }
-            
-            
-            // ensure there is data returned
-            guard let responseData = data else {
-              print("nil Data received from the server")
-              return
-            }
-              
-            do {
-              // create json object from data or use JSONDecoder to convert to Model stuct
-                
-                
-                if let jsonResponse = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers) as? [String: Any] {
-                    
-                    
-                    
-                print(jsonResponse)
-                // handle json response
-                    
-                    
-              } else {
-                print("data maybe corrupted or in wrong format")
-                throw URLError(.badServerResponse)
-              }
-                
-            
-            }
-              catch let error {
-              print(error.localizedDescription)
-            }
-              
-          }
-          // perform the task
-          task.resume()
-            
-        }
 
 }
+    @IBAction func loginButton(_ sender: Any) {
+        let url = URL(string: "http://ec2-18-197-100-203.eu-central-1.compute.amazonaws.com:8080/auth/login")!
+                var request = URLRequest(url: url)
+                
+              
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let parameters: [String: Any] = [
+                    "email" : textField.text,
+                    "deviceUDID" : String(UIDevice.current.identifierForVendor!.uuidString),
+                    
+                ]
+
+                request.httpBody = try! JSONSerialization.data(withJSONObject: parameters)
+
+               
+                 AF.request(request)
+                    .responseDecodable(of: User.self) { (response) in
+                       guard let result = response.value else { return }
+                        print(result.email)
+                        print(result.userID)
+                        print(result.token)
+                        
+                     }
+    }
 }
 
