@@ -9,6 +9,9 @@ import UIKit
 import CoreLocation
 import Alamofire
 
+var email:String?
+var token:String?
+var userID:Int?
 class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
    
    
@@ -51,8 +54,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotific
        
        
        
-       // BVG4QyVeCQUHcOpEMxKderIMuTizQrfD
-       // Do any additional setup after loading the view.
+
    }
    
 
@@ -71,6 +73,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UNUserNotific
                ]
 
                request.httpBody = try! JSONSerialization.data(withJSONObject: parameters)
+       
+       AF.request(request)
+                   .responseDecodable(of: User.self) { (response) in
+                      guard let result = response.value else { return }
+                       token = result.token!
+                       userID = result.userID!
+                       email = result.email!
+                       print(token)
+                       
+                       
+                    }
        
    
 
